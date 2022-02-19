@@ -1,0 +1,176 @@
+<html>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous"> 
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond&family=Roboto+Serif:wght@100;500&display=swap" rel="stylesheet">
+{% load static %} 
+<link rel="stylesheet" href="{% static 'wordle/custom.css' %}">
+<title>Wordle solver</title>
+<head>
+<script type="text/javascript">
+
+    function on_load()
+    {
+        document.getElementById("{{focus_cell}}").focus();
+
+        //Manik debugs
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col < 5; col++) {
+                cell_id = "c" + row.toString() + col.toString();
+                input = document.getElementById(cell_id)
+                if (input.readOnly) {
+                    continue;
+                }
+                input.addEventListener("input", function(e) {
+                    cell_value = e.target.value;
+                    if (cell_value.length > 1) {
+                        e.target.value = ""
+                    } else if (cell_value.length == 1) {
+                        var code = cell_value.charCodeAt(0);
+                        if ((code >= 65 && code <= 90) ||
+                            (code >= 97 && code <= 122)) {
+                                // Valid character
+                                next_cell = get_next_cell_in_row(e.target);
+                                next_cell.focus();
+                        } else {
+                            e.target.value = ""
+                            if (cell_value == " ") {
+                                // Space key, use it to change color
+                                cell_clicked(e.target);
+                            }
+
+                        }
+                    } else {
+                        // Cell value is empty 
+                        // clear all cells in the row
+                        clear_row(e.target);
+                    }
+                })
+            }
+        }
+    }
+
+    function get_next_cell_in_row(el)
+    {
+        cell_id = el.id
+        row = cell_id.slice(1,2)
+        col = cell_id.slice(2,3)
+        if (col == "4") {  // end of row
+            return el
+        }
+
+        col = parseInt(col) + 1
+        next_cell_id = "c" + row.toString() + col.toString()
+        return document.getElementById(next_cell_id)
+    }
+    
+    function get_prev_cell_in_row(el)
+    {
+        cell_id = el.id
+        row = cell_id.slice(1,2)
+        col = cell_id.slice(2,3)
+        if (col == "0") {  // first of row
+            return el
+        }
+
+        col = parseInt(col) - 1
+        next_cell_id = "c" + row.toString() + col.toString()
+        return document.getElementById(next_cell_id)
+    }
+
+    function clear_row(el)
+    {
+        if (el.readOnly) {
+            return
+        }
+
+        row = el.id.slice(1,2)
+        for (let col = 0; col < 5; col++) {
+            cell_id = "c" + row.toString() + col.toString()
+            document.getElementById(cell_id).value = ""
+            if (col == 0) {
+                document.getElementById(cell_id).focus();
+            }
+    
+            document.getElementById(cell_id).style.backgroundColor = "#aaaaaa";
+            document.getElementById(cell_id+"_hidden").value = "N"
+        }
+        return;
+    }
+
+    function cell_clicked(el)
+    {
+        if (el.readOnly) {
+            return
+        }
+
+        // Get current background color and cycle to next
+        if (window.getComputedStyle) {
+            style = window.getComputedStyle(el);
+        } else {
+            style = element.currentStyle;
+        }
+
+        // Get background color and convert to #RRGGBB hex
+        rgb = style.backgroundColor;
+        rgb  = `#${rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/).slice(1).map(n => parseInt(n, 10).toString(16).padStart(2, '0')).join('')}`
+
+        var new_state = "C"
+
+        if (rgb == '#aaaaaa') {   // grey => green
+            rgb = '#00aa00';
+            new_state = "C";
+        } else if (rgb == '#00aa00') {   //green => orange
+            rgb = '#ffa500'
+            new_state = "W"
+        } else if (rgb == '#ffa500') {  // orange => grey
+            rgb = '#aaaaaa'
+            new_state = "N"
+        }
+
+        el.style.backgroundColor = rgb;
+        document.getElementById(el.id+"_hidden").value = new_state
+    }
+</script>
+</head>
+<nav class="navbar navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img type='img/jpg' src="{% static 'wordle/header.jpeg' %}" alt="" width="30" height="24" class="d-inline-block align-text-top">
+        Wordle Solver
+      </a>
+    </div>
+  </nav>
+<body onload='on_load();'>
+
+<!-- Suggestions label -->
+<div class="form-floating mb-3">
+    <input class="form-control" type="text" placeholder="Click on the cell (or press <Space>) to specify letter's presence" aria-label="Disabled input example" disabled>
+</div>
+
+<div class="center">
+  <form action="{% url 'wordle:solve_next' %}" title="A-Z only">
+
+        {% for row_obj in rows %}
+            {% for cell_obj in row_obj.cells %}
+                <input class="cell" style="background-color:{{cell_obj.bg_color}}; color:#FFFFFF; text-transform:uppercase; font-size:50px" name="{{cell_obj.name}}" id="{{cell_obj.name}}" value="{{cell_obj.value}}" {{base_cell_attrs|safe}} {{cell_obj.read_only}} {{cell_obj.required}}>
+                <input type="hidden" value="{{cell_obj.hidden_value}}" id="{{cell_obj.name}}_hidden" name="{{cell_obj.name}}_hidden">
+            {% endfor %}
+        <br>
+        {% endfor %}
+
+        <br>
+        <input type="submit" class="btn btn-primary" value="Submit">
+        <input type="button" class="btn btn-success" onclick="location.href='{% url 'wordle:home' %}';" value="Start again"> 
+        <!-- <a class="btn btn-primary" href="{% url 'wordle:home' %}" role="button">New</a> -->
+        <!-- <a href="{% url 'wordle:home' %}" class="btn btn-success" role="button" style="padding: 10px">Start again</a> -->
+  </form>
+</div>
+<div class="p-2 mb-3 bg-success text-white bg-opacity-75" style="font-family: 'EB Garamond', serif; font-size:20px">{{suggestions}}</div>
+<!--
+<nav class="navbar navbar-light" style="background-color: #e3f2fd; font-family: 'EB Garamond', serif; font-size:30px">
+    {{suggestions}}
+</nav> 
+-->
+</body>
+
+
+</html>
