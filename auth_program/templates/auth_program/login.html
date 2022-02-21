@@ -1,0 +1,15 @@
+{% extends 'auth_program/base.html' %}
+
+{% block content %}
+<br>
+
+<h1>Login</h1>
+
+<h2>{{err_str}}</h2>
+<form method="POST" action="">
+  {% csrf_token %}
+{{ form.as_p }}
+<button type="submit">Login</button>
+</form>
+
+{% endblock %}

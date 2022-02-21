@@ -20,5 +20,10 @@ from . import views
 urlpatterns = [
     path('', views.home),
     path('admin/', admin.site.urls),
-    path('wordle/', include('wordle.urls'))
+    path('wordle/', include('wordle.urls')),
+
+    #Auth
+    path('auth_program/', include('auth_program.urls'))
+
+    #Todo-list
 ]
