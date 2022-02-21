@@ -25,8 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-#q3p!=tg_hp+wa=5inany8$q#u746y6lh$l#5e-t-_(yj#e%t$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-#DEBUG = False
+DEBUG = False
 
 #ALLOWED_HOSTS = ['localhost', '192.168.0.127', 'maniksinghal.pythonanywhere.com', '34.100.137.193']
 ALLOWED_HOSTS = ['*']
@@ -141,3 +140,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')  #manag.py collectstatic will co
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+try:
+    from .local_settings import *
+    print("Using local settings")
+except ImportError:
+    print("Running in production")
