@@ -25,8 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-#q3p!=tg_hp+wa=5inany8$q#u746y6lh$l#5e-t-_(yj#e%t$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = True
-DEBUG = False
+DEBUG = True
+#DEBUG = False
 
 #ALLOWED_HOSTS = ['localhost', '192.168.0.127', 'maniksinghal.pythonanywhere.com', '34.100.137.193']
 ALLOWED_HOSTS = ['*']
@@ -128,6 +128,9 @@ STATIC_URL = 'static/'   #Used for development env when DEBUG=TRUE
 ### For production environment (DEBUG=FALSE) ####
 # Create a STATI_ROOT path below, and run 'manage.py collectstatic'
 #   - Django will collect all static files from app-folders and put it in STATIC_ROOT path
+#   - Configure the web-server in production to look for static files from STATIC_ROOT, or move the 
+#     files from STATIC_ROOT to preferred location on production server (possibly using some automation)
+#        - Done the mapping on pythonanywhere.com, but need to figure out on GCP (still using DEBUG=TRUE there)
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')  #manag.py collectstatic will collect all static files
 
 ## In cas you also want to include non-app static files, you can define the STATICFILES_DIR
