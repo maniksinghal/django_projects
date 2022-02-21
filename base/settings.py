@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from django.conf import settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -118,7 +120,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'static/'
+### For development environment (DEBUG=TRUE) ######
+# Create 'static/<app-name>' inside your <app-name> folder
+# and django will pick static files from the STATIC_URL
+STATIC_URL = 'static/'   #Used for development env when DEBUG=TRUE
+
+### For production environment (DEBUG=FALSE) ####
+# Create a STATI_ROOT path below, and run 'manage.py collectstatic'
+#   - Django will collect all static files from app-folders and put it in STATIC_ROOT path
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')  #manag.py collectstatic will collect all static files
+
+## In cas you also want to include non-app static files, you can define the STATICFILES_DIR
+## Django will search in that path too
+#STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
