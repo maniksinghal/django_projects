@@ -6,6 +6,8 @@ from wordle.core_logic import initialize_db, process_next_word
 GREY = "#AAAAAA"
 GREEN = "#00aa00"
 ORANGE = "#ffa500"
+LIGHT_BLUE = "#add8e6"
+WHITE = "#ffffff"
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +48,7 @@ def create_base_dict():
 
     base_cell_attrs = 'size=1 '
     base_cell_attrs += 'onClick=\"cell_clicked(this);\" title="Please enter alphabets" '
-    base_cell_attrs += 'type="text" onfocusin="this.select()" '
+    base_cell_attrs += 'onfocusin="this.select()" '
 
     base_dict['base_cell_attrs'] = base_cell_attrs
 
@@ -59,19 +61,23 @@ def create_base_dict():
             cell_obj = {}
             cell_obj['name'] = "c%d%d" % (i,j)
             cell_obj['bg_color'] = GREY
+            cell_obj['type'] = "text"
             if i > 0:
                 # All following rows are read-only
                 cell_obj['read_only'] = "readonly"
                 cell_obj ['required'] = ""
+                cell_obj['type'] = "hidden"
             else:
                 cell_obj['read_only'] = ""
                 cell_obj ['required'] = "required"
+                cell_obj ['bg_color'] = LIGHT_BLUE
             cell_obj['value'] = ""
             cell_obj['hidden_value'] = "N"
             row_obj['cells'].append(cell_obj)
 
     base_dict['rows'] = rows
     base_dict['focus_cell'] = "c00"
+    base_dict['active_row'] = "0"
     base_dict['suggestions'] = "Suggestions shall be listed here"
     return base_dict
     
@@ -112,11 +118,21 @@ def solve_next(request):
                     cell_obj['bg_color'] = ORANGE
                 else:
                     cell_obj['bg_color'] = GREEN
+                
+                if cell_value:
+                    #Already filled cell
+                    cell_obj['type'] = "text"
+                else:
+                    #Row after the row-to-edit
+                    cell_obj['type'] = "hidden"
             else:
                 row_to_edit = row
                 #Allow user to edit this row
                 cell_obj['read_only'] = ""
                 cell_obj['required'] = "required"
+                cell_obj['bg_color'] = LIGHT_BLUE
+                cell_obj['type'] = "text"
+                base_dict['active_row'] = row
                 #Rest values are base defaults
         
         if word:
@@ -136,6 +152,6 @@ def solve_next(request):
     elif len(suggested_words) == 0:
         suggestion = "Ran out of words!!"
     else:
-        suggestion = "Try %s" % ",   ".join(suggested_words)
+        suggestion = "Try %s" % ",    ".join(suggested_words)
     base_dict['suggestions'] = suggestion
     return render(request, 'wordle/base.html', base_dict)
